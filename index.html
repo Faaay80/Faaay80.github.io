@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Mon premier pendu</title>
+
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: rgb(9, 82, 82);
+            background-size: cover;
+        }
+
+        #result {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .text-white {
+            margin-bottom: 2rem;
+        }
+
+        .errors {
+            margin-top: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .letter {
+            width: 32px;
+            height: 32px;
+            background-color: gray;
+            margin: 0 2em;
+            border: 1px solid whitesmoke;
+            text-align: center;
+            border-radius: 15%;
+        }
+
+        .text-3xl {
+            font-size: 1.875rem;
+            line-height: 0.25rem;
+        }
+
+        @keyframes buttonAnimation {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        #generate:hover {
+            animation: buttonAnimation 0.5s infinite;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .fadeIn {
+            animation: fadeIn 1s ease-in-out;
+        }
+    </style>
+
+</head>
+
+<body>
+    <main class="h-screen flex flex-col items-center justify-center">
+
+        <div>
+
+            <h1 class="text-3xl font-bold underline text-center text-white">
+                Mon premier pendu
+            </h1>
+            <h2 class="text-3xl font-bold  text-white">Nb Errors : <span id="nb_errors">0</span> </h2>
+        </div>
+        <div class="text-white" data-name="">
+            <p id="result" class="flex flex-wrap">
+            </p>
+        </div>
+        <button id="generate"
+            class="bg-gray-200 relative inline-block flex-shrink-0 border-2 border-transparent rounded-full cursor-pointer p-2">
+            Play
+        </button>
+    </main>
+</body>
+
+<script>
+    class Game {
+        constructor() {
+            this.words = ["saperlipopette", "crevette", "cacahuette", "pastÃ¨que"]
+            this.used_words = []
+            this.nb_errors = 0
+            this.nb_letters_found = 0
+        }
+        get_random_word() {
+            if (this.words.length == 0) {
+                this.words = [...this.used_words]
+                this.used_words = []
+            }
+            let random_index = Math.trunc(Math.random() * this.words.length)
+            let word = this.words[random_index]
+            this.used_words.push(word)
+            this.words.splice(random_index, 1)
+            return word
+
+        }
+    }
+
+    class UI {
+        constructor(pendu_game) {
+            this.game = pendu_game
+            this.current_word = this.game.get_random_word();
+            document.querySelector('#generate').addEventListener('click', this.select_a_word.bind(this))
+        }
+        select_a_word() {
+            document.body.removeEventListener('keyup', this.search_if_letter_is_in_word)
+            document.body.addEventListener('keyup', this.search_if_letter_is_in_word.bind(this));
+            document.querySelector("#result").innerHTML = ''
+
+            for (let letter of this.current_word) {
+                const newSpan = document.createElement("span");
+                newSpan.classList.add('letter', 'fadeIn');
+                newSpan.setAttribute('data-letter', letter.toLowerCase());
+                document.querySelector("#result").appendChild(newSpan);
+            }
+        }
+        display_error() {
+            document.querySelector('#nb_errors').innerText = this.game.nb_errors;
+        }
+        search_if_letter_is_in_word() {
+            let letter_pressed = event.key.toLowerCase();
+
+            let cells = document.querySelectorAll('.letter');
+
+            let found = false;
+            for (let cell of cells) {
+                if (cell.getAttribute('data-letter') == letter_pressed) {
+                    cell.innerHTML = letter_pressed
+                    found = true
+                    this.game.nb_letters_found++
+                }
+            }
+            if (!found) {
+                this.game.nb_errors++
+            }
+
+            this.display_error()
+        }
+    }
+
+    let pendu = new Game();
+    let ui = new UI(pendu);
+
+</script>
+
+</html>
